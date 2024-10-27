@@ -2,14 +2,12 @@ package cpw.mods.niofs.union;
 
 import sun.misc.Unsafe;
 
-import java.lang.invoke.MethodHandles;
 import java.lang.reflect.Field;
-import java.net.URL;
-import java.net.URLStreamHandler;
-import java.util.Hashtable;
+import java.nio.file.spi.FileSystemProvider;
+import java.util.List;
 
 public class KiltUnionFileSystemHelper {
-    private static MethodHandles.Lookup lookup = MethodHandles.lookup();
+    private static final Object lock = new Object();
 
     public static Unsafe getUnsafe() throws NoSuchFieldException, IllegalAccessException {
         Field theUnsafe = Unsafe.class.getDeclaredField("theUnsafe");
@@ -23,9 +21,11 @@ public class KiltUnionFileSystemHelper {
     }
 
     public static void directlyLoadIntoClassLoader(ClassLoader classLoader) throws Throwable {
-        Class<?> handler = Class.forName("cpw.mods.niofs.union.UnionFileSystemProvider", true, classLoader);
-        Hashtable<String, URLStreamHandler> handlers = reflectStaticField(URL.class, "handlers");
+        synchronized (lock) {
+            Class<?> handler = Class.forName("cpw.mods.niofs.union.UnionFileSystemProvider", true, classLoader);
+            List<FileSystemProvider> providers = reflectStaticField(FileSystemProvider.class, "installedProviders");
 
-        handlers.putIfAbsent("union", (URLStreamHandler) handler.getDeclaredConstructor().newInstance());
+            providers.add((FileSystemProvider) handler.getDeclaredConstructor().newInstance());
+        }
     }
 }
