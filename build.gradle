@@ -18,7 +18,7 @@ allprojects {
 
     group 'cpw.mods'
     java {
-        toolchain.languageVersion = JavaLanguageVersion.of(16)
+        toolchain.languageVersion = JavaLanguageVersion.of(17)
         modularity.inferModulePath.set(true)
     }
     version = gradleutils.getTagOffsetVersion()
@@ -83,10 +83,10 @@ dependencyUpdates {
 }
 
 // We can't use toolchains because we need --add-export
-//java.toolchain.languageVersion = JavaLanguageVersion.of(16)
+//java.toolchain.languageVersion = JavaLanguageVersion.of(17)
 compileJava {
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     options.compilerArgs += [
             '-Xlint:unchecked',
             '--add-exports=java.base/sun.security.util=cpw.mods.securejarhandler',
@@ -102,8 +102,8 @@ test {
 }
 
 compileTestJava {
-    sourceCompatibility = JavaVersion.VERSION_16
-    targetCompatibility = JavaVersion.VERSION_16
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
     options.compilerArgs += [
             '--add-modules=jdk.zipfs',
             '--add-exports=jdk.zipfs/jdk.nio.zipfs=ALL-UNNAMED'
@@ -122,10 +122,6 @@ dependencies {
     api("org.ow2.asm:asm-commons:${asmVersion}")
     testImplementation('org.junit.jupiter:junit-jupiter-api:5.8.+')
     testRuntimeOnly('org.junit.jupiter:junit-jupiter-engine:5.8.+')
-}
-
-changelog {
-    fromTag "0.9"
 }
 
 task sourcesJar(type: Jar) {
@@ -156,7 +152,7 @@ jar {
                 'Specification-Version': '1', // We are version 1 of ourselves
                 'Implementation-Title': project.name,
                 'Implementation-Version': "${project.version}+${System.getenv('BUILD_NUMBER')?:0}+${gradleutils.gitInfo.branch}.${gradleutils.gitInfo.abbreviatedId}",
-                'Implementation-Vendor':'forge',
+                'Implementation-Vendor':'kilt',
                 'Implementation-Timestamp': java.time.Instant.now().toString(),
                 'Git-Commit': gradleutils.gitInfo.abbreviatedId,
                 'Git-Branch': gradleutils.gitInfo.branch,
