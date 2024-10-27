@@ -1,36 +1,18 @@
 package cpw.mods.niofs.union;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
-import java.nio.channels.ClosedByInterruptException;
 import java.nio.channels.FileChannel;
-import java.nio.channels.InterruptibleChannel;
 import java.nio.channels.SeekableByteChannel;
-import java.nio.file.AccessMode;
-import java.nio.file.DirectoryStream;
-import java.nio.file.FileStore;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.LinkOption;
-import java.nio.file.Path;
-import java.nio.file.PathMatcher;
-import java.nio.file.StandardOpenOption;
-import java.nio.file.WatchService;
+import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.UserPrincipalLookupService;
-import java.util.Collections;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.Spliterator;
-import java.util.Spliterators;
+import java.util.*;
 import java.util.function.BiPredicate;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -48,9 +30,7 @@ public class UnionFileSystem extends FileSystem {
 
     static {
         try {
-            var hackfield = MethodHandles.Lookup.class.getDeclaredField("IMPL_LOOKUP");
-            hackfield.setAccessible(true);
-            MethodHandles.Lookup hack = (MethodHandles.Lookup) hackfield.get(null);
+            MethodHandles.Lookup hack = KiltUnionFileSystemHelper.reflectStaticField(MethodHandles.Lookup.class, "IMPL_LOOKUP");
 
             var clz = Class.forName("jdk.nio.zipfs.ZipPath");
             ZIPFS_EXISTS = hack.findSpecial(clz, "exists", MethodType.methodType(boolean.class), clz);
@@ -60,7 +40,7 @@ public class UnionFileSystem extends FileSystem {
 
             clz = Class.forName("sun.nio.ch.FileChannelImpl");
             FCI_UNINTERUPTIBLE = hack.findSpecial(clz, "setUninterruptible", MethodType.methodType(void.class), clz);
-        } catch (NoSuchFieldException | IllegalAccessException | ClassNotFoundException | NoSuchMethodException e) {
+        } catch (Throwable e) {
             throw new RuntimeException(e);
         }
     }
